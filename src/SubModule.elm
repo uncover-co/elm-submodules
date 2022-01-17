@@ -1,8 +1,18 @@
-module SubModule exposing (init, initWithEffect, update, updateWithEffect)
+module SubModule exposing
+    ( initWithEffect, updateWithEffect
+    , init, update
+    )
 
 {-| This module is used for plugging submodules into a host module. If you're working on the submodule itself, check out `SubCmd`.
 
-@docs init, initWithEffect, update, updateWithEffect
+@docs initWithEffect, updateWithEffect
+
+
+## Modules without effect
+
+We also provide a few functions to help you deal with modules that can't send effects so you have a similar API across your host module. Note that the same could be achieved without this package at all.
+
+@docs init, update
 
 -}
 
@@ -19,7 +29,9 @@ import Task
     let
         ( subModule, initSubModule ) =
             SubModule.init
-                |> SubModule.init SubModuleMsg
+                |> SubModule.init
+                    { toMsg = SubModuleMsg
+                    }
 
         ( subModule2, initSubModule2 ) =
             SubModule2.init
@@ -30,21 +42,6 @@ import Task
     ( { subModule = subModule, subModule2 = subModule2 }, Cmd.none )
         |> initSubModule
         |> initSubModule2
-
-**This only exists so you can use a similar strategy across modules that do and don't send effects.** If you're only working with modules that don't you could just use this strategy:
-
-    let
-        ( subModule, subModuleCmd ) =
-            SubModule.init
-                |> Tuple.mapSecond (Cmd.map SubModuleMsg)
-
-        ( subModule2, subModule2Cmd ) =
-            SubModule2.init
-                |> Tuple.mapSecond (Cmd.map SubModule2Msg)
-    in
-    ( { subModule = subModule, subModule2 = subModule2 }
-    , Cmd.batch [ subModuleCmd, subModule2Cmd ]
-    )
 
 -}
 init :
@@ -130,18 +127,6 @@ initWithEffect config ( subModel, subCmd ) =
                         { toMsg = GotSubMsg
                         , toModel = \subModule -> { model | subModule = subModule }
                         }
-            ...
-
-**This only exists so you can use a similar strategy across modules that do and don't send effects.** If you're only working with modules that don't you could just use this strategy:
-
-    update : Msg -> Model -> ( Model, Cmd Msg )
-    update msg model =
-        case msg of
-            GotSubMsg subMsg ->
-                SubModule.update subMsg model.subModule
-                    |> SubModule.update
-                        |> Tuple.mapFirst \subModule -> { model | subModule = subModule }
-                        |> Tuple.mapSecond (Cmd.map GotSubMsg)
             ...
 
 -}
