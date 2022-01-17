@@ -1,0 +1,14 @@
+{
+  "name": "elm-submodules",
+  "version": "1.0.0",
+  "description": "Nested Elm Architectures made easy.",
+  "scripts": {
+    "docs": "elm-doc-preview"
+  },
+  "author": "Georges Boris",
+  "license": "MPL-2.0",
+  "devDependencies": {
+    "elm-doc-preview": "^5.0.5",
+    "elm-tooling": "^1.7.0"
+  }
+}
