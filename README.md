@@ -41,39 +41,38 @@ Done! Your submodule uses the `SubCmd` module to send both `cmd`'s and `effect`'
 
 Well, how would I actually plug this submodule into my application?
 
-Imagine you have a submodule called `SubWidget`. Using it would be as simple as doing this in the host module:
+Imagine you have a submodule called `Widget`. Using it would be as simple as doing this in the host module:
 
 ```elm
-import SubWidget
+import Widget
 
 
 type alias Model =
-    { subValue : Maybe String
-    , subModel : SubWidget.Model
+    { widget : Widget.Model
+    , valueFromWidget : Maybe String
     }
 
 
 type Msg
-    = GotSubMsg SubWidget.Msg
-    | GotSubEffect SubWidget.Effect
+    = GotWidgetMsg Widget.Msg
+    | GotWidgetEffect Widget.Effect
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GotSubMsg subMsg ->
-            SubWidget.update subMsg model.subModel
-                |> SubWidget.updateWithEffect
-                    { toMsg = GotSubMsg
-                    , effectToMsg = GotSubEffect
-                    , toModel =
-                        \subModel -> { model | subModel = subModel }
+        GotWidgetMsg widgetMsg ->
+            Widget.update widgetMsg model.widget
+                |> SubModule.updateWithEffect
+                    { toMsg = GotWidgetMsg
+                    , effectToMsg = GotWidgetEffect
+                    , toModel = \widget -> { model | widget = widget }
                     }
 
-        GotSubEffect subEffect ->
-            case subEffect of
-                SubWidget.SendValue value ->
-                    ( { model | subValue = Just value }
+        GotWidgetEffect widgetEffect ->
+            case widgetEffect of
+                Widget.SendValue value ->
+                    ( { model | valueFromWidget = Just value }
                     , Cmd.none
                     )
 
@@ -81,8 +80,8 @@ update msg model =
 view : Html Msg
 view =
     div []
-        [ SubWidget.view
-            |> Html.map GotSubMsg
+        [ Widget.view
+            |> Html.map GotWidgetMsg
         ]
 ```
 

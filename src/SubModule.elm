@@ -27,21 +27,21 @@ import Task
 {-| Enables you to initialize multiple submodules that **cannot send effects**.
 
     let
-        ( subModule, initSubModule ) =
-            SubModule.init
+        ( widget, initWidget ) =
+            Widget.init
                 |> SubModule.init
-                    { toMsg = SubModuleMsg
+                    { toMsg = GotWidgetMsg
                     }
 
-        ( subModule2, initSubModule2 ) =
-            SubModule2.init
+        ( otherWidget, initOtherWidget ) =
+            OtherWidget.init
                 |> SubModule.init
-                    { toMsg = SubModule2Msg
+                    { toMsg = GotOtherWidgetMsg
                     }
     in
-    ( { subModule = subModule, subModule2 = subModule2 }, Cmd.none )
-        |> initSubModule
-        |> initSubModule2
+    ( { widget = widget, otherWidget = otherWidget }, Cmd.none )
+        |> initWidget
+        |> initOtherWidget
 
 -}
 init :
@@ -64,27 +64,27 @@ init config ( subModel, subCmd ) =
 
     let
         -- This submodule can't send effects
-        ( subModule, initSubModule ) =
-            SubModule.init
+        ( widget, initWidget ) =
+            Widget.init
                 |> SubModule.init
-                    { toMsg = GotSubMsg
+                    { toMsg = GotWidgetMsg
                     }
 
         -- But this one can!
-        ( subModule2, initSubModule2 ) =
-            SubModule2.init
+        ( superWidget, initSuperWidget ) =
+            SuperWidget.init
                 |> SubModule.initWithEffect
-                    { toMsg = GotSubMsg2
-                    , effectToMsg = GotSubEffect2
+                    { toMsg = GotSuperWidgetMsg
+                    , effectToMsg = GotSuperWidgetEffect
                     }
     in
-    ( { subModule = subModule
-      , subModule2 = subModule2
+    ( { widget = widget
+      , superWidget = superWidget
       }
     , Cmd.none
     )
-        |> initSubModule
-        |> initSubModule2
+        |> initWidget
+        |> initSuperWidget
 
 -}
 initWithEffect :
@@ -115,17 +115,17 @@ initWithEffect config ( subModel, subCmd ) =
 {-| Enables you to handle the updates of submodules that **cannot send effects**.
 
     type Msg
-        = GotSubMsg SubWidget.Msg
+        = GotWidgetMsg Widget.Msg
         | ...
 
     update : Msg -> Model -> ( Model, Cmd Msg )
     update msg model =
         case msg of
-            GotSubMsg subMsg ->
-                SubModule.update subMsg model.subModule
+            GotWidgetMsg widgetMsg ->
+                Widget.update widgetMsg model.widget
                     |> SubModule.update
-                        { toMsg = GotSubMsg
-                        , toModel = \subModule -> { model | subModule = subModule }
+                        { toMsg = GotWidgetMsg
+                        , toModel = \widget -> { model | widget = widget }
                         }
             ...
 
@@ -144,26 +144,31 @@ update config ( subModel, subCmd ) =
 
 {-| Enables you to handle the updates of submodules that **can send effects**.
 
+    type Model =
+        { widget : Widget.Model
+        , valueFromWidget : Maybe String
+        }
+
     type Msg
-        = GotSubMsg SubWidget.Msg
-        | GotSubEffect SubWidget.Effect
+        = GotWidgetMsg Widget.Msg
+        | GotWidgetEffect Widget.Effect
 
     update : Msg -> Model -> ( Model, Cmd Msg )
     update msg model =
         case msg of
-            GotSubMsg subMsg ->
-                SubWidget.update subMsg model.subModel
-                    |> SubWidget.updateWithEffect
-                        { toMsg = GotSubMsg
-                        , effectToMsg = GotSubEffect
+            GotWidgetMsg widgetMsg ->
+                Widget.update widgetMsg model.widget
+                    |> SubModule.updateWithEffect
+                        { toMsg = GotWidgetMsg
+                        , effectToMsg = GotWidgetEffect
                         , toModel =
-                            \subModel -> { model | subModel = subModel }
+                            \widget -> { model | widget = widget }
                         }
 
-            GotSubEffect subEffect ->
-                case subEffect of
-                    SubWidget.SendValue value ->
-                        ( { model | subValue = Just value }
+            GotWidgetEffect widgetEffect ->
+                case widgetEffect of
+                    Widget.SendValue value ->
+                        ( { model | valueFromWidget = Just value }
                         , Cmd.none
                         )
 
