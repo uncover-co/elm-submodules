@@ -204,7 +204,8 @@ subCmdToMsg : (subMsg -> msg) -> (subEffect -> msg) -> SubCmd subMsg subEffect -
 subCmdToMsg toMsg effectToMsg subCmd =
     case subCmd of
         External subEffect ->
-            Task.perform (\_ -> effectToMsg subEffect) (Task.succeed ())
+            Task.succeed (effectToMsg subEffect)
+                |> Task.perform identity
 
         Internal subCmd_ ->
             Cmd.map toMsg subCmd_

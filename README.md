@@ -2,7 +2,7 @@
 
 Elm is _not_ a "component based" framework and this is not a problem. There are different strategies for reusing parts of your application and these start out as being way simpler than what you would usually expect from "components".
 
-That being said, sometimes you do need something more "stateful" but you shouldn't need to lose the simplicity of Elm when that time comes. This module aims to help you do just that.
+That being said, sometimes you do need something more "stateful" but you shouldn't need to lose the simplicity of Elm when that time comes. This module aims to help you to do just that.
 
 ## Creating a Submodule
 
