@@ -1,6 +1,6 @@
 {
   "name": "elm-submodules",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Nested Elm Architectures made easy.",
   "scripts": {
     "docs": "elm-doc-preview"
