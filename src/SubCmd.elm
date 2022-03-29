@@ -1,4 +1,7 @@
-module SubCmd exposing (SubCmd, none, cmd, effect, batch)
+module SubCmd exposing
+    ( SubCmd, none, cmd, effect, batch
+    , mapCmd, mapEffect, mapBoth
+    )
 
 {-| When setting up a submodule, you should use `SubCmd.cmd` when you want the submodule itself to handle the messages. However, if you want the message to be "sent" to the host, just use `SubCmd.effect`.
 
@@ -31,6 +34,11 @@ module SubCmd exposing (SubCmd, none, cmd, effect, batch)
 ## Functions
 
 @docs SubCmd, none, cmd, effect, batch
+
+
+## Transformations
+
+@docs mapCmd, mapEffect, mapBoth
 
 -}
 
@@ -73,3 +81,34 @@ effect =
 batch : List (SubCmd msg effect) -> SubCmd msg effect
 batch =
     S.Batch
+
+
+{-| Maps a `cmd` just like you would with `Cmd.map`.
+-}
+mapCmd : (msgA -> msgB) -> SubCmd msgA effect -> SubCmd msgB effect
+mapCmd fn =
+    mapBoth fn identity
+
+
+{-| Maps an `effect` just like you would with `Cmd.map`.
+-}
+mapEffect : (effectA -> effectB) -> SubCmd msg effectA -> SubCmd msg effectB
+mapEffect fn =
+    mapBoth identity fn
+
+
+{-| Maps both `cmd`'s and `effect`'s at the same time.
+-}
+mapBoth : (msgA -> msgB) -> (effectA -> effectB) -> SubCmd msgA effectA -> SubCmd msgB effectB
+mapBoth cmdMap effectMap subCmd =
+    case subCmd of
+        S.Internal cmd_ ->
+            S.Internal (Cmd.map cmdMap cmd_)
+
+        S.External effect_ ->
+            S.External (effectMap effect_)
+
+        S.Batch subCmds ->
+            subCmds
+                |> List.map (mapBoth cmdMap effectMap)
+                |> S.Batch
